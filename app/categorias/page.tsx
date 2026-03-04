@@ -1,13 +1,23 @@
 'use client'
 
-import { PieChart, Pie, Cell, Legend, Tooltip, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts'
-import { Plus, TrendingUp } from 'lucide-react'
-import { categorias, distribucionVentas } from '@/lib/mock-data'
+import { useState } from 'react'
+import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts'
+import { categorias as initialCategorias, distribucionVentas as initialDistribucion } from '@/lib/mock-data'
 import { Breadcrumbs } from '@/components/breadcrumbs'
+import { ModalNuevaCategoria } from '@/components/modals/modal-nueva-categoria'
 
-const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444']
+const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899']
 
 export default function CategoriasPage() {
+  const [categoriasList, setCategoriasList] = useState(initialCategorias)
+  const [distribucion, setDistribucion] = useState(initialDistribucion)
+
+  const handleCreated = (nueva: { nombre: string; descripcion?: string; productos: number; ventas: number }) => {
+    const newCat = { id: categoriasList.length + 1, nombre: nueva.nombre, productos: 0, ventas: 0 }
+    setCategoriasList(prev => [...prev, newCat])
+    setDistribucion(prev => [...prev, { nombre: nueva.nombre, valor: 0 }])
+  }
+
   return (
     <div className="space-y-6">
       <Breadcrumbs />
@@ -17,10 +27,7 @@ export default function CategoriasPage() {
           <h1 className="text-3xl font-bold text-foreground">Categorías</h1>
           <p className="text-muted-foreground">Gestiona las categorías de tus productos</p>
         </div>
-        <button className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition-opacity">
-          <Plus size={20} />
-          Nueva Categoría
-        </button>
+        <ModalNuevaCategoria onCreated={handleCreated} />
       </div>
 
       {/* Charts Grid */}
@@ -31,7 +38,7 @@ export default function CategoriasPage() {
           <ResponsiveContainer width="100%" height={300}>
             <PieChart>
               <Pie
-                data={distribucionVentas}
+                data={distribucion}
                 cx="50%"
                 cy="50%"
                 labelLine={false}
@@ -53,7 +60,7 @@ export default function CategoriasPage() {
         <div className="bg-card border border-border rounded-lg p-6">
           <h2 className="text-lg font-semibold text-foreground mb-4">Productos por Categoría</h2>
           <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={categorias}>
+            <BarChart data={categoriasList}>
               <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
               <XAxis dataKey="nombre" stroke="var(--muted-foreground)" />
               <YAxis stroke="var(--muted-foreground)" />
@@ -81,8 +88,8 @@ export default function CategoriasPage() {
               </tr>
             </thead>
             <tbody>
-              {categorias.map((categoria) => {
-                const totalVentas = categorias.reduce((sum, cat) => sum + cat.ventas, 0)
+              {categoriasList.map((categoria) => {
+                const totalVentas = categoriasList.reduce((sum, cat) => sum + cat.ventas, 0)
                 const percentage = ((categoria.ventas / totalVentas) * 100).toFixed(1)
                 return (
                   <tr key={categoria.id} className="border-b border-border hover:bg-muted/30 transition-colors">

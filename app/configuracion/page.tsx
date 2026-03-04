@@ -24,6 +24,7 @@ export default function ConfiguracionPage() {
 
   return (
     <div className="space-y-6 max-w-4xl">
+      <Breadcrumbs />
       {/* Header */}
       <div>
         <h1 className="text-3xl font-bold text-foreground">Configuración</h1>
