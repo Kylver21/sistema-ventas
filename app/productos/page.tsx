@@ -1,14 +1,16 @@
 'use client'
 
 import { useState } from 'react'
-import { Search, Plus, Edit2, Trash2, AlertCircle } from 'lucide-react'
-import { productos } from '@/lib/mock-data'
+import { Search, Edit2, Trash2, AlertCircle } from 'lucide-react'
+import { productos as initialProductos } from '@/lib/mock-data'
 import { Breadcrumbs } from '@/components/breadcrumbs'
+import { ModalNuevoProducto } from '@/components/modals/modal-nuevo-producto'
 
 export default function ProductosPage() {
+  const [productosList, setProductosList] = useState(initialProductos)
   const [searchTerm, setSearchTerm] = useState('')
 
-  const filteredProductos = productos.filter(producto =>
+  const filteredProductos = productosList.filter(producto =>
     producto.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
     producto.categoria.toLowerCase().includes(searchTerm.toLowerCase())
   )
@@ -22,10 +24,9 @@ export default function ProductosPage() {
           <h1 className="text-3xl font-bold text-foreground">Productos</h1>
           <p className="text-muted-foreground">Gestiona tu catálogo de productos</p>
         </div>
-        <button className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition-opacity">
-          <Plus size={20} />
-          Nuevo Producto
-        </button>
+        <ModalNuevoProducto
+          onCreated={(p) => setProductosList(prev => [{ id: prev.length + 1, precio: `S/ ${p.precio.toLocaleString('es-PE')}`, ...p }, ...prev])}
+        />
       </div>
 
       {/* Search */}
