@@ -1,9 +1,11 @@
 'use client'
 
-import { Bell, User, Sun, Moon, Monitor } from 'lucide-react'
+import { Bell, Sun, Moon, Monitor } from 'lucide-react'
 import { usePathname } from 'next/navigation'
 import { useTheme } from 'next-themes'
 import { useEffect, useState } from 'react'
+import { LogoutButton } from './logout-button'
+import type { Profile } from '@/lib/supabase/types'
 
 const pageTitles: Record<string, { title: string; subtitle: string }> = {
   '/dashboard': { title: 'Dashboard', subtitle: 'Resumen general del negocio' },
@@ -14,7 +16,11 @@ const pageTitles: Record<string, { title: string; subtitle: string }> = {
   '/configuracion': { title: 'Configuración', subtitle: 'Perfil y preferencias' },
 }
 
-export function Header() {
+interface HeaderProps {
+  profile?: Profile | null
+}
+
+export function Header({ profile }: HeaderProps) {
   const pathname = usePathname()
   const { theme, setTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
@@ -28,6 +34,10 @@ export function Header() {
     { value: 'dark', icon: Moon, label: 'Oscuro' },
     { value: 'system', icon: Monitor, label: 'Sistema' },
   ]
+
+  const initials = profile?.nombre
+    ? profile.nombre.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
+    : '?'
 
   return (
     <header className="hidden md:flex items-center justify-between px-6 py-4 bg-background border-b border-border">
@@ -60,13 +70,18 @@ export function Header() {
           <Bell size={20} className="text-foreground" />
           <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-destructive rounded-full" />
         </button>
-        {/* User */}
-        <button className="flex items-center gap-2 px-3 py-1.5 hover:bg-muted rounded-md transition-colors">
-          <div className="w-7 h-7 rounded-full bg-primary/20 flex items-center justify-center">
-            <User size={14} className="text-primary" />
+        {/* User info */}
+        <div className="flex items-center gap-2 px-3 py-1.5 bg-muted/50 rounded-md">
+          <div className="w-7 h-7 rounded-full bg-primary flex items-center justify-center">
+            <span className="text-xs font-bold text-primary-foreground">{initials}</span>
           </div>
-          <span className="text-sm font-medium text-foreground">Juan P.</span>
-        </button>
+          <div className="hidden lg:block text-left">
+            <p className="text-xs font-semibold text-foreground leading-tight">{profile?.nombre ?? 'Usuario'}</p>
+
+          </div>
+        </div>
+        {/* Logout */}
+        <LogoutButton />
       </div>
     </header>
   )

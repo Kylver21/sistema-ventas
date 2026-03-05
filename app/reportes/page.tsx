@@ -1,7 +1,6 @@
 'use client'
 
 import { Download, Eye, Plus, Calendar, Filter } from 'lucide-react'
-import { reportesData } from '@/lib/mock-data'
 import { Breadcrumbs } from '@/components/breadcrumbs'
 
 export default function ReportesPage() {
@@ -38,54 +37,10 @@ export default function ReportesPage() {
       </div>
 
       {/* Reports Grid */}
-      <div className="space-y-4">
-        {reportesData.map((reporte) => (
-          <div
-            key={reporte.id}
-            className="bg-card border border-border rounded-lg p-6 hover:shadow-md transition-shadow"
-          >
-            <div className="flex items-center justify-between">
-              {/* Left Side - Info */}
-              <div className="flex-1">
-                <h3 className="text-lg font-semibold text-foreground">{reporte.nombre}</h3>
-                <div className="flex items-center gap-4 mt-2">
-                  <span className="text-sm text-muted-foreground">{reporte.fecha}</span>
-                  <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                    reporte.estado === 'Completado'
-                      ? 'bg-green-100 text-green-800'
-                      : 'bg-yellow-100 text-yellow-800'
-                  }`}>
-                    {reporte.estado}
-                  </span>
-                  {reporte.descargas > 0 && (
-                    <span className="text-sm text-muted-foreground">
-                      {reporte.descargas} descargas
-                    </span>
-                  )}
-                </div>
-              </div>
-
-              {/* Right Side - Actions */}
-              <div className="flex gap-2">
-                <button className="p-2 hover:bg-muted rounded-md transition-colors text-foreground" title="Ver reporte">
-                  <Eye size={20} />
-                </button>
-                <button
-                  className={`p-2 rounded-md transition-colors flex items-center gap-2 px-4 ${
-                    reporte.estado === 'Completado'
-                      ? 'hover:bg-primary hover:text-primary-foreground text-foreground'
-                      : 'opacity-50 cursor-not-allowed'
-                  }`}
-                  disabled={reporte.estado !== 'Completado'}
-                  title={reporte.estado !== 'Completado' ? 'El reporte aún se está generando' : 'Descargar reporte'}
-                >
-                  <Download size={18} />
-                  <span className="text-sm font-medium">Descargar</span>
-                </button>
-              </div>
-            </div>
-          </div>
-        ))}
+      {/* Reportes generados — próximamente desde Supabase */}
+      <div className="bg-card border border-border rounded-lg p-10 text-center space-y-2">
+        <p className="text-muted-foreground text-sm">No hay reportes generados aún.</p>
+        <p className="text-muted-foreground text-xs">La funcionalidad de reportes se conectará a Supabase próximamente.</p>
       </div>
 
       {/* Report Templates */}
