@@ -1,14 +1,15 @@
-'use client'
-
 import { Sidebar } from './sidebar'
 import { Header } from './header'
+import { getCurrentProfile } from '@/lib/actions/auth'
 
-export function DashboardLayout({ children }: { children: React.ReactNode }) {
+export async function DashboardLayout({ children }: { children: React.ReactNode }) {
+  const profile = await getCurrentProfile()
+
   return (
     <div className="flex h-screen overflow-hidden">
       <Sidebar />
       <div className="flex-1 flex flex-col overflow-auto">
-        <Header />
+        <Header profile={profile} />
         <main className="flex-1 p-4 md:p-6 bg-background">
           {children}
         </main>
@@ -16,3 +17,4 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
     </div>
   )
 }
+

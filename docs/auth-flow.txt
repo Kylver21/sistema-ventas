@@ -1,0 +1,15 @@
+RUTAS PROTEGIDAS (requieren sesión iniciada):
+/dashboard, /ventas, /productos, /categorias, /reportes, /configuracion
+
+RUTAS PÚBLICAS:
+/login
+
+FLUJO DE AUTH:
+- Sin sesión → redirige a /login
+- Con sesión en /login → redirige a /dashboard
+
+SOLO ADMIN puede acceder:
+- /configuracion
+
+ADMIN + VENDEDOR pueden acceder:
+- /dashboard, /ventas, /productos, /categorias, /reportes

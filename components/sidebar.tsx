@@ -64,7 +64,7 @@ export function Sidebar() {
         <div className="p-4 border-t border-sidebar-border">
           {isOpen && (
             <div className="text-xs text-sidebar-foreground/60">
-              © 2024 Dashboard
+              © 2026 Sistema de Ventas
             </div>
           )}
         </div>
