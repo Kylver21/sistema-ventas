@@ -93,6 +93,28 @@ export async function updateProducto(
   return { success: true }
 }
 
+export async function ajustarStock(id: number, delta: number) {
+  const supabase = await createClient()
+
+  const { data: prod, error: getError } = await supabase
+    .from('productos')
+    .select('stock')
+    .eq('id', id)
+    .single()
+
+  if (getError || !prod) throw new Error('Producto no encontrado')
+
+  const nuevoStock = Math.max(0, prod.stock + delta)
+  const { error } = await supabase
+    .from('productos')
+    .update({ stock: nuevoStock })
+    .eq('id', id)
+
+  if (error) throw new Error(error.message)
+  revalidatePath('/productos')
+  return { success: true, nuevoStock }
+}
+
 export async function deleteProducto(id: number) {
   const supabase = await createClient()
   const { error } = await supabase.from('productos').delete().eq('id', id)

@@ -155,12 +155,12 @@ export function VentasClient({ initialVentas, productos }: Props) {
         <p className="text-sm text-muted-foreground">
           {filtered.length === 0
             ? 'Sin resultados'
-            : `Mostrando ${(safePage - 1) * ITEMS_PER_PAGE + 1}â€“${Math.min(safePage * ITEMS_PER_PAGE, filtered.length)} de ${filtered.length} ventas`}
+            : `Mostrando ${(safePage - 1) * ITEMS_PER_PAGE + 1}–${Math.min(safePage * ITEMS_PER_PAGE, filtered.length)} de ${filtered.length} ventas`}
         </p>
         <div className="flex items-center gap-1">
           <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={safePage === 1}
             className="px-3 py-2 bg-card border border-border rounded-lg hover:bg-muted text-sm text-foreground disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
-            â† Anterior
+            ← Anterior
           </button>
           {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
             <button key={page} onClick={() => setCurrentPage(page)}
@@ -170,7 +170,7 @@ export function VentasClient({ initialVentas, productos }: Props) {
           ))}
           <button onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={safePage === totalPages}
             className="px-3 py-2 bg-card border border-border rounded-lg hover:bg-muted text-sm text-foreground disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
-            Siguiente â†’
+            Siguiente →
           </button>
         </div>
       </div>
@@ -189,7 +189,7 @@ export function VentasClient({ initialVentas, productos }: Props) {
             <div className="flex items-center justify-between px-6 py-4 border-b border-border">
               <div>
                 <h3 className="font-bold text-foreground">Venta #{ventaDetalle.id}</h3>
-                <p className="text-xs text-muted-foreground mt-0.5">{ventaDetalle.fecha} Â· Consumidor final</p>
+                <p className="text-xs text-muted-foreground mt-0.5">{ventaDetalle.fecha} · Consumidor final</p>
               </div>
               <button
                 onClick={() => setVentaDetalle(null)}
@@ -213,7 +213,7 @@ export function VentasClient({ initialVentas, productos }: Props) {
                 <tbody className="divide-y divide-border">
                   {(ventaDetalle.venta_detalle ?? []).map((d, i) => (
                     <tr key={i}>
-                      <td className="px-6 py-3 text-foreground">{d.productos?.nombre ?? 'â€”'}</td>
+                      <td className="px-6 py-3 text-foreground">{d.productos?.nombre ?? '—'}</td>
                       <td className="px-3 py-3 text-center text-muted-foreground">{d.cantidad}</td>
                       <td className="px-3 py-3 text-right text-muted-foreground">
                         S/ {Number(d.precio_unitario).toLocaleString('es-PE', { minimumFractionDigits: 2 })}
