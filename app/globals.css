@@ -123,3 +123,21 @@
     @apply bg-background text-foreground;
   }
 }
+
+@media print {
+  body > *:not([data-print-voucher]) {
+    display: none !important;
+  }
+  .print-voucher {
+    display: block !important;
+    border: 1px solid #e5e7eb !important;
+    border-radius: 8px;
+    font-size: 13px;
+    color: #111;
+    background: #fff;
+  }
+  [role="dialog"] {
+    position: static !important;
+    box-shadow: none !important;
+  }
+}

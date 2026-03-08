@@ -37,13 +37,21 @@ export async function getProductosActivos() {
   const supabase = await createClient()
   const { data, error } = await supabase
     .from('productos')
-    .select('id, nombre, precio, stock, codigo_barras')
+    .select('id, nombre, precio, stock, codigo_barras, categoria_id, categorias(nombre)')
     .eq('activo', true)
     .gt('stock', 0)
     .order('nombre')
 
   if (error) throw new Error(error.message)
-  return data ?? []
+  return (data ?? []) as {
+    id: number
+    nombre: string
+    precio: number
+    stock: number
+    codigo_barras: string | null
+    categoria_id: number | null
+    categorias: { nombre: string } | null
+  }[]
 }
 
 // Funcion especifica para buscar por codigo de barras (muy usada en ventas rapidas)
