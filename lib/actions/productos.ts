@@ -93,6 +93,58 @@ export async function updateProducto(
   return { success: true }
 }
 
+export async function ajustarStock(id: number, delta: number) {
+  const supabase = await createClient()
+
+  const { data: prod, error: getError } = await supabase
+    .from('productos')
+    .select('stock')
+    .eq('id', id)
+    .single()
+
+  if (getError || !prod) throw new Error('Producto no encontrado')
+
+  const nuevoStock = Math.max(0, prod.stock + delta)
+  const { error } = await supabase
+    .from('productos')
+    .update({ stock: nuevoStock })
+    .eq('id', id)
+
+  if (error) throw new Error(error.message)
+  revalidatePath('/productos')
+  return { success: true, nuevoStock }
+}
+
+export interface ProductoVentaStat {
+  producto_id: number
+  total_vendido: number
+  ingresos: number
+}
+
+export async function getVentasEstadisticasProductos(): Promise<ProductoVentaStat[]> {
+  const supabase = await createClient()
+  const { data, error } = await supabase
+    .from('venta_detalle')
+    .select('producto_id, cantidad, subtotal')
+
+  if (error) return []
+
+  const map = new Map<number, { total_vendido: number; ingresos: number }>()
+  for (const row of (data ?? [])) {
+    if (row.producto_id === null) continue
+    const prev = map.get(row.producto_id) ?? { total_vendido: 0, ingresos: 0 }
+    map.set(row.producto_id, {
+      total_vendido: prev.total_vendido + (row.cantidad ?? 0),
+      ingresos: prev.ingresos + (row.subtotal ?? 0),
+    })
+  }
+
+  return Array.from(map.entries()).map(([producto_id, stats]) => ({
+    producto_id,
+    ...stats,
+  }))
+}
+
 export async function deleteProducto(id: number) {
   const supabase = await createClient()
   const { error } = await supabase.from('productos').delete().eq('id', id)
