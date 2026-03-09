@@ -247,16 +247,18 @@ export function POSView({ productos, onClose, onCreated }: Props) {
                   const disponible = prod.stock - cantEnCarrito
                   const agotado = disponible <= 0
                   return (
-                    <button
+                    <div
                       key={prod.id}
-                      onClick={() => addToCart(prod)}
-                      disabled={agotado}
+                      role={agotado ? undefined : 'button'}
+                      tabIndex={agotado ? undefined : 0}
+                      onClick={() => !agotado && addToCart(prod)}
+                      onKeyDown={(e) => !agotado && e.key === 'Enter' && addToCart(prod)}
                       className={`relative text-left p-3 rounded-xl border-2 transition-all select-none ${
                         agotado
                           ? 'border-border bg-muted/20 opacity-40 cursor-not-allowed'
                           : cantEnCarrito > 0
-                          ? 'border-primary bg-primary/5 hover:bg-primary/10'
-                          : 'border-border bg-card hover:border-primary/30 hover:bg-muted/50 active:scale-[0.97]'
+                          ? 'border-primary bg-primary/5 cursor-pointer'
+                          : 'border-border bg-card hover:border-primary/30 hover:bg-muted/50 active:scale-[0.97] cursor-pointer'
                       }`}
                     >
                       {cantEnCarrito > 0 && (
@@ -279,7 +281,42 @@ export function POSView({ productos, onClose, onCreated }: Props) {
                       }`}>
                         {disponible > 0 ? `${disponible} en stock` : 'Agotado'}
                       </p>
-                    </button>
+                      {cantEnCarrito > 0 && (
+                        <div
+                          className="mt-2 flex items-center justify-between rounded-lg overflow-hidden bg-primary/10 md:hidden"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              if (cantEnCarrito === 1) {
+                                setCart(prev => prev.filter(i => i.producto_id !== prod.id))
+                              } else {
+                                updateQty(prod.id, -1)
+                              }
+                            }}
+                            className="min-w-[44px] min-h-[44px] flex items-center justify-center text-primary hover:bg-primary/20 active:bg-primary/30 transition-colors"
+                            aria-label={cantEnCarrito === 1 ? 'Eliminar del carrito' : 'Disminuir cantidad'}
+                          >
+                            {cantEnCarrito === 1 ? <X size={16} /> : <Minus size={16} />}
+                          </button>
+                          <span className="text-sm font-bold text-primary select-none">{cantEnCarrito}</span>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              addToCart(prod)
+                            }}
+                            disabled={disponible <= 0}
+                            className="min-w-[44px] min-h-[44px] flex items-center justify-center text-primary hover:bg-primary/20 active:bg-primary/30 transition-colors disabled:opacity-40"
+                            aria-label="Aumentar cantidad"
+                          >
+                            <Plus size={16} />
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   )
                 })}
               </div>
@@ -288,7 +325,7 @@ export function POSView({ productos, onClose, onCreated }: Props) {
         </div>
 
         {/* RIGHT: cart panel */}
-        <aside className="w-72 xl:w-80 shrink-0 flex flex-col border-l border-border bg-card">
+        <aside className="w-72 xl:w-80 shrink-0 hidden md:flex flex-col border-l border-border bg-card">
 
           {/* Cart header */}
           <div className="shrink-0 flex items-center justify-between px-5 py-3.5 border-b border-border">
@@ -389,6 +426,24 @@ export function POSView({ productos, onClose, onCreated }: Props) {
           </div>
         </aside>
       </div>
+
+      {/* ── Mobile bottom bar ── */}
+      {cart.length > 0 && (
+        <div className="md:hidden shrink-0 p-3 border-t border-border bg-card shadow-[0_-4px_12px_rgba(0,0,0,0.08)]">
+          <button
+            onClick={handleCobrar}
+            className="w-full flex items-center justify-between py-3 px-5 bg-primary text-primary-foreground rounded-xl font-bold active:opacity-90 transition-opacity min-h-[52px]"
+          >
+            <span className="bg-white/20 text-sm font-semibold px-2.5 py-1 rounded-full text-center min-w-[32px]">
+              {totalItems}
+            </span>
+            <span className="text-base tracking-wide">Ver pedido</span>
+            <span className="text-base font-bold">
+              S/ {total.toLocaleString('es-PE', { minimumFractionDigits: 2 })}
+            </span>
+          </button>
+        </div>
+      )}
 
       {/* ── PAYMENT OVERLAY ── */}
       {view === 'pago' && (
