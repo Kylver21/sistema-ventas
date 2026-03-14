@@ -7,7 +7,7 @@ import {
   CheckCircle, Printer, ShoppingCart,
 } from 'lucide-react'
 import { createVenta } from '@/lib/actions/ventas'
-import { BarcodeScanner } from './BarcodeScanner'
+import { BarcodeScanner, type BarcodeDetectionResult } from './BarcodeScanner'
 
 export interface ProductoPOS {
   id: number
@@ -59,6 +59,7 @@ export function POSView({ productos, onClose, onCreated }: Props) {
   const [voucher, setVoucher] = useState<VoucherData | null>(null)
   const [scannerOpen, setScannerOpen] = useState(false)
   const [scanFeedback, setScanFeedback] = useState<string | null>(null)
+  const [scanToast, setScanToast] = useState<{ id: number; message: string } | null>(null)
   const searchRef = useRef<HTMLInputElement>(null)
   const router = useRouter()
 
@@ -96,6 +97,12 @@ export function POSView({ productos, onClose, onCreated }: Props) {
     return () => window.clearTimeout(timer)
   }, [scanFeedback])
 
+  useEffect(() => {
+    if (!scanToast) return
+    const timer = window.setTimeout(() => setScanToast(null), 1700)
+    return () => window.clearTimeout(timer)
+  }, [scanToast])
+
   const addToCart = (prod: ProductoPOS) => {
     const enCarrito = cart.find(i => i.producto_id === prod.id)?.cantidad ?? 0
     if (enCarrito >= prod.stock) return
@@ -110,18 +117,22 @@ export function POSView({ productos, onClose, onCreated }: Props) {
     })
   }
 
-  const handleBarcodeDetected = (decodedText: string) => {
+  const handleBarcodeDetected = async (decodedText: string): Promise<BarcodeDetectionResult> => {
     const barcode = decodedText.trim()
-    if (!barcode) return
+    if (!barcode) return { success: false }
+
+    await new Promise(resolve => window.setTimeout(resolve, 180))
 
     const producto = productos.find(p => (p.codigo_barras ?? '').trim() === barcode)
     if (!producto) {
       setScanFeedback(`Sin coincidencia para: ${barcode}`)
-      return
+      return { success: false }
     }
 
     addToCart(producto)
-    setScanFeedback(`Agregado: ${producto.nombre}`)
+    setScanFeedback(null)
+    setScanToast({ id: Date.now(), message: `Agregado: ${producto.nombre}` })
+    return { success: true }
   }
 
   const updateQty = (productoId: number, delta: number) => {
@@ -473,6 +484,14 @@ export function POSView({ productos, onClose, onCreated }: Props) {
 
   return (
     <div className="fixed inset-0 z-50 bg-background flex flex-col overflow-hidden">
+
+      {scanToast && (
+        <div className="pointer-events-none absolute left-1/2 top-3 z-[80] -translate-x-1/2">
+          <div className="rounded-lg border border-green-200 bg-green-50/95 px-3 py-2 text-xs font-semibold text-green-800 shadow-lg dark:border-green-800 dark:bg-green-950/90 dark:text-green-200">
+            {scanToast.message}
+          </div>
+        </div>
+      )}
 
       {/* ── Top bar ── */}
       <header className="shrink-0 flex items-center justify-between px-4 md:px-6 h-14 border-b border-border bg-card">
