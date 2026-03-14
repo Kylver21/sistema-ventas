@@ -3,10 +3,11 @@
 import { useState, useRef, useEffect, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import {
-  Search, X, Minus, Plus, Trash2, ArrowLeft,
+  Search, X, Minus, Plus, Trash2, ArrowLeft, Camera,
   CheckCircle, Printer, ShoppingCart,
 } from 'lucide-react'
 import { createVenta } from '@/lib/actions/ventas'
+import { BarcodeScanner } from './BarcodeScanner'
 
 export interface ProductoPOS {
   id: number
@@ -56,6 +57,8 @@ export function POSView({ productos, onClose, onCreated }: Props) {
   const [serverError, setServerError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [voucher, setVoucher] = useState<VoucherData | null>(null)
+  const [scannerOpen, setScannerOpen] = useState(false)
+  const [scanFeedback, setScanFeedback] = useState<string | null>(null)
   const searchRef = useRef<HTMLInputElement>(null)
   const router = useRouter()
 
@@ -87,6 +90,12 @@ export function POSView({ productos, onClose, onCreated }: Props) {
     searchRef.current?.focus()
   }, [])
 
+  useEffect(() => {
+    if (!scanFeedback) return
+    const timer = window.setTimeout(() => setScanFeedback(null), 2400)
+    return () => window.clearTimeout(timer)
+  }, [scanFeedback])
+
   const addToCart = (prod: ProductoPOS) => {
     const enCarrito = cart.find(i => i.producto_id === prod.id)?.cantidad ?? 0
     if (enCarrito >= prod.stock) return
@@ -99,6 +108,20 @@ export function POSView({ productos, onClose, onCreated }: Props) {
       }
       return [...prev, { producto_id: prod.id, nombre: prod.nombre, precio: prod.precio, cantidad: 1 }]
     })
+  }
+
+  const handleBarcodeDetected = (decodedText: string) => {
+    const barcode = decodedText.trim()
+    if (!barcode) return
+
+    const producto = productos.find(p => (p.codigo_barras ?? '').trim() === barcode)
+    if (!producto) {
+      setScanFeedback(`Sin coincidencia para: ${barcode}`)
+      return
+    }
+
+    addToCart(producto)
+    setScanFeedback(`Agregado: ${producto.nombre}`)
   }
 
   const updateQty = (productoId: number, delta: number) => {
@@ -117,6 +140,7 @@ export function POSView({ productos, onClose, onCreated }: Props) {
 
   const handleCobrar = () => {
     if (cart.length === 0) return
+    setScannerOpen(false)
     setMetodo('Efectivo')
     setEfectivo('')
     setServerError(null)
@@ -186,17 +210,51 @@ export function POSView({ productos, onClose, onCreated }: Props) {
             placeholder="Buscar producto o código de barras..."
             value={search}
             onChange={e => setSearch(e.target.value)}
-            className="w-full pl-9 pr-9 py-2.5 bg-card border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+            className="w-full pl-9 pr-20 py-2.5 bg-card border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ring"
           />
           {search && (
             <button
               onClick={() => setSearch('')}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+              className="absolute right-11 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
             >
               <X size={14} />
             </button>
           )}
+          <button
+            type="button"
+            onClick={() => setScannerOpen(v => !v)}
+            className={`absolute right-3 top-1/2 -translate-y-1/2 rounded-md p-1.5 transition-colors ${
+              scannerOpen
+                ? 'bg-primary text-primary-foreground'
+                : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+            }`}
+            aria-label="Abrir escaner de codigo de barras"
+          >
+            <Camera size={14} />
+          </button>
         </div>
+
+        {scannerOpen && (
+          <div className="flex justify-center">
+            <BarcodeScanner
+              open={scannerOpen}
+              onClose={() => setScannerOpen(false)}
+              onDetected={handleBarcodeDetected}
+            />
+          </div>
+        )}
+
+        {scanFeedback && (
+          <p
+            className={`mt-2 text-xs text-center font-medium ${
+              scanFeedback.startsWith('Agregado:')
+                ? 'text-green-600 dark:text-green-400'
+                : 'text-amber-600 dark:text-amber-400'
+            }`}
+          >
+            {scanFeedback}
+          </p>
+        )}
       </div>
 
       {/* Category tabs */}
